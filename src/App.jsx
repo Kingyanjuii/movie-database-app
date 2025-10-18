@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SearchBar from "./components/SearchBar";
+import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
 
 const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
@@ -32,28 +32,59 @@ const App = () => {
   };
 
   useEffect(() => {
-    searchMovies("avengers"); // Default search on page load
+    searchMovies("avengers");
   }, []);
 
   return (
-    <div className="min-h-screen px-6 py-10 bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold text-center mb-10 text-blue-400">
-        Movie Database 🎬
-      </h1>
-      <SearchBar
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onSearch={() => searchMovies(searchTerm)}
-      />
+    <div className="bg-black text-white min-h-screen flex flex-col">
+      {/* Header */}
+      <Header />
 
-      {loading && <p className="text-center mt-8">Loading movies...</p>}
-      {error && <p className="text-center text-red-400 mt-8">{error}</p>}
+      {/* Banner Section */}
+      <section
+        className="relative w-full h-[350px] bg-cover bg-center"
+        style={{ backgroundImage: "url('/banner.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
 
-      <div className="grid gap-6 mt-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {movies.map((movie) => (
-          <MovieCard key={movie.imdbID} movie={movie} />
-        ))}
-      </div>
+        {/* Search Bar */}
+        <div className="absolute left-1/2 bottom-[25%] transform -translate-x-1/2 z-10">
+          <div
+            className="flex items-center rounded-full overflow-hidden shadow-2xl backdrop-blur-md bg-white/25 border border-white/30 transition-all"
+            style={{ width: "500px", height: "72px" }}
+          >
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search for a movie, tv show or documentary..."
+              className="flex-1 h-full px-6 text-black placeholder-gray-700 bg-transparent focus:outline-none border-none"
+            />
+            <button
+              onClick={() => searchMovies(searchTerm)}
+              className="h-full px-8 bg-white text-black font-semibold text-lg hover:bg-gray-200 hover:shadow-md transition-all"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <main className="flex-grow px-6 py-10">
+        {loading && <p className="text-center mt-8">Loading movies...</p>}
+        {error && <p className="text-center text-red-400 mt-8">{error}</p>}
+
+        {/* Movie Grid */}
+        <div
+          className="grid gap-10 mt-10 justify-center max-w-[1200px] mx-auto"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
+        >
+          {movies.map((movie) => (
+            <MovieCard key={movie.imdbID} movie={movie} />
+          ))}
+        </div>
+      </main>
     </div>
   );
 };
