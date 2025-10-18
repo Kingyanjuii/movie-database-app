@@ -1,43 +1,78 @@
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
+import Banner from "./components/Banner";
 
-const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
-const API_URL = `https://www.omdbapi.com/?apikey=${API_KEY}`;
+// ✅ TMDB API key and base URL
+const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
+const BASE_URL = "https://api.themoviedb.org/3";
 
 const App = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState("Movies"); // segmented control state
 
+  // ✅ TMDB search endpoint
   const searchMovies = async (title) => {
+    if (!title.trim()) return;
     setLoading(true);
     setError("");
+
     try {
-      const response = await fetch(`${API_URL}&s=${title}`);
+      const response = await fetch(
+        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
+      );
       const data = await response.json();
 
-      if (data.Response === "True") {
-        setMovies(data.Search);
+      if (data.results && data.results.length > 0) {
+        setMovies(data.results);
       } else {
+        setError("No movies found. Try another search!");
         setMovies([]);
-        setError("No movies found. Try a different title!");
       }
-    } catch (err) {
-      setError("Error fetching data. Please check your connection.");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      setError("An error occurred while fetching data.");
     }
+    setLoading(false);
   };
 
+  // ✅ Fetch Trending content dynamically based on filter
+  const fetchTrending = async (category) => {
+    setLoading(true);
+    setError("");
+
+    let endpoint = "movie";
+    if (category === "TV Shows") endpoint = "tv";
+    else if (category === "Documentaries") endpoint = "movie"; // TMDB doesn’t have a specific “documentary” endpoint, so we’ll later filter results if needed
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/trending/${endpoint}/week?api_key=${API_KEY}`
+      );
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        setMovies(data.results);
+      } else {
+        setMovies([]);
+        setError("No trending content found for this category.");
+      }
+    } catch (error) {
+      setError("An error occurred while fetching trending data.");
+    }
+
+    setLoading(false);
+  };
+
+  // ✅ Fetch trending movies on first load and whenever filter changes
   useEffect(() => {
-    searchMovies("avengers");
-  }, []);
+    fetchTrending(filter);
+  }, [filter]);
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <Header />
 
       {/* Banner Section */}
@@ -50,19 +85,20 @@ const App = () => {
         {/* Search Bar */}
         <div className="absolute left-1/2 bottom-[25%] transform -translate-x-1/2 z-10">
           <div
-            className="flex items-center rounded-full overflow-hidden shadow-2xl backdrop-blur-md bg-white/25 border border-white/30 transition-all"
-            style={{ width: "500px", height: "72px" }}
+            className="flex items-center rounded-full overflow-hidden shadow-2xl bg-white transition-all"
+            style={{ width: "850px", height: "50px" }}
           >
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search for a movie, tv show or documentary..."
-              className="flex-1 h-full px-6 text-black placeholder-gray-700 bg-transparent focus:outline-none border-none"
+              placeholder="Search for a movie, TV show or documentary..."
+              className="flex-1 h-full px-6 text-black placeholder-gray-500 bg-white focus:outline-none border-none text-lg"
             />
             <button
               onClick={() => searchMovies(searchTerm)}
-              className="h-full px-8 bg-white text-black font-semibold text-lg hover:bg-gray-200 hover:shadow-md transition-all"
+              className="h-full px-[40px] bg-[#f2790f] text-[#ffffff] font-semibold text-lg hover:bg-[#e06900] transition-all duration-300 border-none outline-none"
+              style={{ border: "none" }}
             >
               Search
             </button>
@@ -70,8 +106,30 @@ const App = () => {
         </div>
       </section>
 
+      {/* Trending Section */}
+      <section className="mt-12 px-6 flex items-center justify-start gap-6">
+        <h2 className="text-2xl font-bold text-white">Trending</h2>
+
+        {/* Segmented Control */}
+        <div className="flex bg-gray-800 rounded-full p-1">
+          {["Movies", "TV Shows", "Documentaries"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`px-6 py-2 rounded-full font-medium text-lg transition-all duration-300 ${
+                filter === type
+                  ? "bg-[#f2790f] text-white shadow-md"
+                  : "text-gray-300 hover:text-white hover:bg-gray-700"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Main Content */}
-      <main className="flex-grow px-6 py-10">
+      <main className="flex-grow px-6 pb-10">
         {loading && <p className="text-center mt-8">Loading movies...</p>}
         {error && <p className="text-center text-red-400 mt-8">{error}</p>}
 
@@ -81,7 +139,18 @@ const App = () => {
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
         >
           {movies.map((movie) => (
-            <MovieCard key={movie.imdbID} movie={movie} />
+            <MovieCard
+              key={movie.id}
+              movie={{
+                title: movie.title || movie.name,
+                poster: movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                  : "/no-poster.jpg",
+                year: movie.release_date
+                  ? movie.release_date.split("-")[0]
+                  : "N/A",
+              }}
+            />
           ))}
         </div>
       </main>

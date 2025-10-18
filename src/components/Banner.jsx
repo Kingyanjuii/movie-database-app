@@ -7,24 +7,24 @@ const Banner = ({ searchTerm, onChange, onSearch }) => {
       style={{ backgroundImage: "url('/banner.jpg')" }}
     >
       {/* Overlay for darkening the banner */}
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      <div className="absolute inset-0 bg-black/50"></div>
 
       {/* Search container */}
-      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-[876px]">
-        <div className="flex items-center bg-white rounded-full overflow-hidden shadow-lg">
+      <div className="absolute bottom-[25%] left-1/2 transform -translate-x-1/2 w-[720px]">
+        <div className="flex items-center bg-white rounded-full overflow-hidden shadow-2xl border border-gray-300 transition-all">
           {/* Search Input */}
           <input
             type="text"
-            placeholder="Search for a movie, tv show or documentary..."
+            placeholder="Search for a movie, TV show or documentary..."
             value={searchTerm}
             onChange={onChange}
-            className="flex-1 h-[72px] px-6 text-lg text-gray-800 outline-none border-none placeholder-gray-500"
+            className="flex-1 h-[60px] px-6 text-lg text-black bg-white placeholder-gray-500 focus:outline-none border-none"
           />
 
           {/* Search Button */}
           <button
             onClick={onSearch}
-            className="h-[72px] px-10 bg-red-600 text-white text-lg font-semibold hover:bg-red-700 transition-all"
+            className="h-[60px] px-36 bg-[#f2790f] text-white text-lg font-semibold hover:bg-[#e06900] transition-all duration-300"
           >
             Search
           </button>
