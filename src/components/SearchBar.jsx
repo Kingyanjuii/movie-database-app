@@ -2,17 +2,22 @@ import React from "react";
 
 const SearchBar = ({ value, onChange, onSearch }) => {
   return (
-    <div className="flex justify-center items-center gap-3">
-      <input
-        type="text"
-        placeholder="Search for a movie..."
-        value={value}
-        onChange={onChange}
-        className="w-72 sm:w-96 px-4 py-2 text-black rounded-lg focus:outline-none"
-      />
+    <div className="flex justify-center items-center">
+      {/* Input wrapper */}
+      <div className="w-72 sm:w-96">
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          placeholder="Search for a movie..."
+          className="w-full h-12 bg-white text-black rounded-lg border border-gray-300 focus:outline-none pl-[20px] placeholder-gray-500"
+        />
+      </div>
+
+      {/* Button */}
       <button
         onClick={onSearch}
-        className="px-5 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
+        className="ml-3 px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold"
       >
         Search
       </button>
