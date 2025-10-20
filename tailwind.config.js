@@ -2,12 +2,21 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}"
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+      },
+      fontSize: {
+        heading: '40px',
+        'small-title': '20px',
+        'movie-title': '18px',
+      },
+    },
   },
   plugins: [
-    require('@tailwindcss/aspect-ratio'), // enable aspect ratio
+    require('@tailwindcss/aspect-ratio'),
   ],
-}
+};

@@ -3,7 +3,6 @@ import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
 import Banner from "./components/Banner";
 
-// ✅ TMDB API key and base URL
 const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -12,9 +11,8 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("Movies"); // segmented control state
+  const [filter, setFilter] = useState("Movies");
 
-  // ✅ TMDB search endpoint
   const searchMovies = async (title) => {
     if (!title.trim()) return;
     setLoading(true);
@@ -22,7 +20,9 @@ const App = () => {
 
     try {
       const response = await fetch(
-        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
+        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(
+          title
+        )}`
       );
       const data = await response.json();
 
@@ -38,19 +38,22 @@ const App = () => {
     setLoading(false);
   };
 
-  // ✅ Fetch Trending content dynamically based on filter
   const fetchTrending = async (category) => {
     setLoading(true);
     setError("");
 
-    let endpoint = "movie";
-    if (category === "TV Shows") endpoint = "tv";
-    else if (category === "Documentaries") endpoint = "movie"; // TMDB doesn’t have a specific “documentary” endpoint, so we’ll later filter results if needed
-
     try {
-      const response = await fetch(
-        `${BASE_URL}/trending/${endpoint}/week?api_key=${API_KEY}`
-      );
+      let url = "";
+      if (category === "Movies") {
+        url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}`;
+      } else if (category === "TV Shows") {
+        url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
+      } else if (category === "Documentaries") {
+        // Use Discover API for documentaries
+        url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=99&sort_by=popularity.desc`;
+      }
+
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
@@ -66,7 +69,6 @@ const App = () => {
     setLoading(false);
   };
 
-  // ✅ Fetch trending movies on first load and whenever filter changes
   useEffect(() => {
     fetchTrending(filter);
   }, [filter]);
@@ -98,7 +100,6 @@ const App = () => {
             <button
               onClick={() => searchMovies(searchTerm)}
               className="h-full px-[40px] bg-[#f2790f] text-[#ffffff] font-semibold text-lg hover:bg-[#e06900] transition-all duration-300 border-none outline-none"
-              style={{ border: "none" }}
             >
               Search
             </button>
@@ -107,35 +108,52 @@ const App = () => {
       </section>
 
       {/* Trending Section */}
-      <section className="mt-12 px-6 flex items-center justify-start gap-6">
-        <h2 className="text-2xl font-bold text-white">Trending</h2>
+      <section className="mt-12 px-[30px] flex flex-col gap-4">
+        <h2 className="text-2xl font-bold text-white mb-4">Trending</h2>
 
-        {/* Segmented Control */}
-        <div className="flex bg-gray-800 rounded-full p-1">
-          {["Movies", "TV Shows", "Documentaries"].map((type) => (
+        {/* Single Curved Box Toggle */}
+        <div className="relative flex bg-gray-800 rounded-full">
+          {/* Sliding Active Indicator */}
+          <div
+            className="absolute top-1 left-1 bg-[#f2790f] rounded-full z-0 transition-all duration-300"
+            style={{
+              width: "200px",
+              height: "35px",
+              transform: `translateX(${
+                ["Movies", "TV Shows", "Documentaries"].indexOf(filter) * 200
+              }px)`,
+            }}
+          ></div>
+
+          {["Movies", "TV Shows", "Documentaries"].map((type, index) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`px-6 py-2 rounded-full font-medium text-lg transition-all duration-300 ${
-                filter === type
-                  ? "bg-[#f2790f] text-white shadow-md"
-                  : "text-gray-300 hover:text-white hover:bg-gray-700"
+              className={`relative z-10 w-[200px] h-[35px] text-lg font-semibold text-center bg-transparent transition-all duration-300 ${
+                filter === type ? "text-white" : "text-gray-300 hover:text-white"
+              } ${
+                index === 0
+                  ? "rounded-l-full"
+                  : index === 2
+                  ? "rounded-r-full"
+                  : ""
               }`}
             >
               {type}
             </button>
           ))}
         </div>
+
+        <div className="h-[40px]"></div>
       </section>
 
       {/* Main Content */}
-      <main className="flex-grow px-6 pb-10">
+      <main className="flex-grow px-[30px] pb-10">
         {loading && <p className="text-center mt-8">Loading movies...</p>}
         {error && <p className="text-center text-red-400 mt-8">{error}</p>}
 
-        {/* Movie Grid */}
         <div
-          className="grid gap-10 mt-10 justify-center max-w-[1200px] mx-auto"
+          className="grid gap-8 mt-10 justify-center max-w-[1200px] mx-auto"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
         >
           {movies.map((movie) => (
