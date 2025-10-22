@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const MovieCard = ({ movie }) => {
+const MovieCard = ({ movie, customWidth, customHeight }) => {
   const navigate = useNavigate();
 
   const title = movie.title || movie.name || "Untitled";
@@ -15,10 +15,17 @@ const MovieCard = ({ movie }) => {
 
   return (
     <div
-      className="bg-gray-800 p-2 rounded-3xl shadow-lg hover:scale-105 transition-transform w-[210px] overflow-hidden cursor-pointer"
+      className="bg-gray-800 p-2 rounded-3xl shadow-lg hover:scale-105 transition-transform overflow-hidden cursor-pointer"
+      style={{ width: customWidth || "210px" }}
       onClick={() => navigate(`/movie/${movie.id}`)}
     >
-      <div className="relative w-[210px] h-[287px] overflow-hidden rounded-3xl">
+      <div
+        className="relative overflow-hidden rounded-3xl"
+        style={{
+          width: customWidth || "210px",
+          height: customHeight || "287px",
+        }}
+      >
         <img
           src={poster}
           alt={title}
