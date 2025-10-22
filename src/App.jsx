@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
 import Banner from "./components/Banner";
-import MovieDetails from "./components/MovieDetails"; // new page
+import MovieDetails from "./components/MovieDetails";
 
 const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -21,21 +21,42 @@ const App = () => {
     setError("");
 
     try {
+      // use multi search so results include movies and TV shows
       const response = await fetch(
-        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(
+        `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(
           title
         )}`
       );
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
-        setMovies(data.results);
+        // keep only movie/tv items or documentaries by genre id 99 (if present)
+        const validResults = data.results.filter(
+          (item) =>
+            item.media_type === "movie" ||
+            item.media_type === "tv" ||
+            (Array.isArray(item.genre_ids) && item.genre_ids.includes(99))
+        );
+
+        // ensure every item has a media_type for downstream logic
+        const normalized = validResults.map((it) => {
+          if (it.media_type) return it;
+          // if no media_type but has title -> movie, else tv
+          return {
+            ...it,
+            media_type: it.title ? "movie" : "tv",
+          };
+        });
+
+        setMovies(normalized);
       } else {
         setError("No movies found. Try another search!");
         setMovies([]);
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("searchMovies error:", err);
       setError("An error occurred while fetching data.");
+      setMovies([]);
     }
     setLoading(false);
   };
@@ -59,13 +80,26 @@ const App = () => {
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
-        setMovies(data.results);
+        // Normalize results so each item includes media_type
+        const normalizedResults = data.results.map((item) => ({
+          ...item,
+          media_type:
+            category === "Movies"
+              ? "movie"
+              : category === "TV Shows"
+              ? "tv"
+              : // for documentaries we label as movie (documentary) so details fetch as movie
+                "movie",
+        }));
+        setMovies(normalizedResults);
       } else {
         setMovies([]);
         setError("No trending content found for this category.");
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("fetchTrending error:", err);
       setError("An error occurred while fetching trending data.");
+      setMovies([]);
     }
 
     setLoading(false);
@@ -75,7 +109,6 @@ const App = () => {
     fetchTrending(filter);
   }, [filter]);
 
-  // Main page content kept exactly as your original App.jsx
   const MainPage = () => (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <Header />
@@ -111,30 +144,26 @@ const App = () => {
       </section>
 
       {/* Trending Section */}
-      <section className="mt-12 px-[30px] flex flex-col gap-4">
+      <section className="mt-12 px-[60px] flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-white mb-4">Trending</h2>
 
-        {/* Single Curved Box Toggle */}
-        <div className="relative flex bg-gray-800 rounded-full">
-          {/* Sliding Active Indicator */}
-          <div
-            className="absolute top-1 left-1 bg-[#f2790f] rounded-full z-0 transition-all duration-300"
-            style={{
-              width: "200px",
-              height: "35px",
-              transform: `translateX(${
-                ["Movies", "TV Shows", "Documentaries"].indexOf(filter) * 200
-              }px)`,
-            }}
-          ></div>
-
-          {["Movies", "TV Shows", "Documentaries"].map((type, index) => (
+        {/* Tab Buttons styled like MovieDetails */}
+        <div className="flex gap-[20px] pb-3" style={{ marginBottom: "20px" }}>
+          {["Movies", "TV Shows", "Documentaries"].map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`relative z-10 w-[200px] h-[35px] text-lg font-semibold text-center bg-transparent transition-all duration-300 ${
-                filter === type ? "text-white" : "text-gray-300 hover:text-white"
-              } ${index === 0 ? "rounded-l-full" : index === 2 ? "rounded-r-full" : ""}`}
+              className={`rounded-full font-semibold transition-all duration-300 ${
+                filter === type
+                  ? "bg-[#f2790f]"
+                  : "bg-transparent text-gray-400 hover:text-white hover:bg-gray-800"
+              }`}
+              style={{
+                color: filter === type ? "#ffffff" : "#9ca3af",
+                fontSize: "16px",
+                padding: "9.6px 22.4px",
+                minWidth: "160px",
+              }}
             >
               {type}
             </button>
@@ -154,7 +183,7 @@ const App = () => {
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
         >
           {movies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
+            <MovieCard key={`${movie.id}-${movie.media_type || "movie"}`} movie={movie} />
           ))}
         </div>
       </main>
@@ -165,7 +194,12 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
+        {/* keep backward-compatible movie route */}
         <Route path="/movie/:id" element={<MovieDetails />} />
+        {/* keep tv route as well */}
+        <Route path="/tv/:id" element={<MovieDetails />} />
+        {/* unified route that includes media type explicitly */}
+        <Route path="/details/:mediaType/:id" element={<MovieDetails />} />
       </Routes>
     </Router>
   );
