@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
 import Banner from "./components/Banner";
+import MovieDetails from "./components/MovieDetails"; // new page
 
 const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -73,7 +75,8 @@ const App = () => {
     fetchTrending(filter);
   }, [filter]);
 
-  return (
+  // Main page content kept exactly as your original App.jsx
+  const MainPage = () => (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <Header />
 
@@ -131,13 +134,7 @@ const App = () => {
               onClick={() => setFilter(type)}
               className={`relative z-10 w-[200px] h-[35px] text-lg font-semibold text-center bg-transparent transition-all duration-300 ${
                 filter === type ? "text-white" : "text-gray-300 hover:text-white"
-              } ${
-                index === 0
-                  ? "rounded-l-full"
-                  : index === 2
-                  ? "rounded-r-full"
-                  : ""
-              }`}
+              } ${index === 0 ? "rounded-l-full" : index === 2 ? "rounded-r-full" : ""}`}
             >
               {type}
             </button>
@@ -157,22 +154,20 @@ const App = () => {
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
         >
           {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              movie={{
-                title: movie.title || movie.name,
-                poster: movie.poster_path
-                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : "/no-poster.jpg",
-                year: movie.release_date
-                  ? movie.release_date.split("-")[0]
-                  : "N/A",
-              }}
-            />
+            <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
       </main>
     </div>
+  );
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/movie/:id" element={<MovieDetails />} />
+      </Routes>
+    </Router>
   );
 };
 

@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const MovieCard = ({ movie }) => {
+  const navigate = useNavigate();
+
   const title = movie.title || movie.name || "Untitled";
   const poster = movie.poster
     ? movie.poster
@@ -8,11 +11,13 @@ const MovieCard = ({ movie }) => {
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "https://via.placeholder.com/210x287";
   const year =
-    movie.year ||
-    (movie.release_date ? movie.release_date.split("-")[0] : "N/A");
+    movie.year || (movie.release_date ? movie.release_date.split("-")[0] : "N/A");
 
   return (
-    <div className="bg-gray-800 p-2 rounded-3xl shadow-lg hover:scale-105 transition-transform w-[210px] overflow-hidden">
+    <div
+      className="bg-gray-800 p-2 rounded-3xl shadow-lg hover:scale-105 transition-transform w-[210px] overflow-hidden cursor-pointer"
+      onClick={() => navigate(`/movie/${movie.id}`)}
+    >
       <div className="relative w-[210px] h-[287px] overflow-hidden rounded-3xl">
         <img
           src={poster}
