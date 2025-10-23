@@ -60,7 +60,7 @@ const DocumentariesPage = () => {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* Spacer for fixed header */}
-      <div className="mt-[150px]"></div>
+      <div className="mt-[40px]"></div>
 
       <section className="px-[60px] flex flex-col gap-6">
         <h2 className="text-2xl font-bold text-white mb-4">Documentaries</h2>

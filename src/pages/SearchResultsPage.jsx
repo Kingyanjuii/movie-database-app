@@ -7,67 +7,56 @@ const BASE_URL = "https://api.themoviedb.org/3";
 
 const SearchResultsPage = () => {
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const query = searchParams.get("query") || "";
-
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      setError("");
-      return;
-    }
+    const stateQuery = location.state?.query || "";
+    if (!stateQuery.trim()) return;
 
-    const fetchResults = async () => {
+    setQuery(stateQuery);
+    setResults([]);
+    fetchSearchResults(stateQuery);
+  }, [location.state?.query, location.state?.timestamp]);
+
+  const fetchSearchResults = async (term) => {
+    try {
       setLoading(true);
-      setError("");
-      setResults([]);
+      const response = await fetch(
+        `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(term)}`
+      );
+      const data = await response.json();
 
-      try {
-        const response = await fetch(
-          `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
-        );
-        const data = await response.json();
-
-        if (data.results && data.results.length > 0) {
-          setResults(data.results);
-        } else {
-          setResults([]);
-          setError("No results found.");
-        }
-      } catch (err) {
-        console.error("SearchResultsPage error:", err);
+      if (data.results?.length > 0) {
+        setResults(data.results);
+      } else {
         setResults([]);
-        setError("An error occurred while fetching search results.");
       }
-
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+      setResults([]);
+    } finally {
       setLoading(false);
-    };
-
-    fetchResults();
-  }, [query]);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white px-[30px] pt-[150px]">
-      <h2 className="text-2xl font-bold mb-6">
-        Search Results for: "{query}"
-      </h2>
+    <div className="bg-gray-950 text-white min-h-screen px-12 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Search Results for “{query}”
+      </h1>
 
-      {loading && <p className="text-center mt-8">Loading results...</p>}
-      {error && <p className="text-center text-red-400 mt-8">{error}</p>}
+      {loading && <p className="text-center text-gray-400">Loading...</p>}
 
-      <div
-        className="grid gap-8 mt-10 justify-center max-w-[1200px] mx-auto"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
-      >
+      {!loading && results.length === 0 && query && (
+        <p className="text-center text-gray-400">No results found.</p>
+      )}
+
+      {/* ✅ 5 columns, 20% tighter spacing, centered */}
+      <div className="grid grid-cols-5 gap-[3px] mt-10 justify-items-center">
         {results.map((item) => (
-          <MovieCard
-            key={`${item.id}-${item.media_type || "movie"}`}
-            movie={item}
-          />
+          <MovieCard key={item.id} movie={item} />
         ))}
       </div>
     </div>

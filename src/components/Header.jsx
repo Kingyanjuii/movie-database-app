@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import filamudbLogo from "../assets/filamudb-logo.png";
 
-const Header = ({ searchTerm, setSearchTerm }) => {
+const Header = ({ searchTerm, setSearchTerm, showSearch, setShowSearch }) => {
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [showSearch, setShowSearch] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const inputRef = useRef(null);
 
-  // Handle scroll to hide/show header
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -22,21 +20,23 @@ const Header = ({ searchTerm, setSearchTerm }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Focus search input when it appears
   useEffect(() => {
-    if (showSearch && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (showSearch && inputRef.current) inputRef.current.focus();
   }, [showSearch]);
 
   const isActive = (path) => location.pathname === path;
 
   const handleSearch = () => {
     if (!searchTerm.trim()) return;
-    navigate(`/search?query=${encodeURIComponent(searchTerm)}`);
+    // Navigate same way as Banner.jsx
+    if (location.pathname === "/search") {
+      navigate("/search", { state: { query: searchTerm, timestamp: Date.now() } });
+    } else {
+      navigate("/search", { state: { query: searchTerm } });
+    }
+    setShowSearch(false); // Hide search after submitting
   };
 
-  // Clear search on navigation
   const handleLogoClick = () => {
     setSearchTerm("");
     navigate("/");
@@ -49,6 +49,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
 
   return (
     <>
+      {/* Header */}
       <header
         className={`w-full fixed top-0 left-0 z-50 transition-transform duration-300 ${
           showHeader ? "translate-y-0" : "-translate-y-full"
@@ -61,7 +62,10 @@ const Header = ({ searchTerm, setSearchTerm }) => {
         }}
       >
         <div className="flex items-center gap-[65px] relative">
-          <div onClick={handleLogoClick} className="flex items-center space-x-4 cursor-pointer">
+          <div
+            onClick={handleLogoClick}
+            className="flex items-center space-x-4 cursor-pointer"
+          >
             <img
               src={filamudbLogo}
               alt="FilamuDB Logo"
@@ -75,7 +79,9 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                 key={path}
                 onClick={() => handleNavClick(path)}
                 className={`font-bold cursor-pointer transition-colors duration-300 ${
-                  isActive(path) ? "text-[#f2790f]" : "text-[#5c6f73] hover:text-[#f2790f]"
+                  isActive(path)
+                    ? "text-[#f2790f]"
+                    : "text-[#5c6f73] hover:text-[#f2790f]"
                 }`}
               >
                 {["Movies", "TV Shows", "Documentaries"][i]}
@@ -102,21 +108,34 @@ const Header = ({ searchTerm, setSearchTerm }) => {
         </div>
       </header>
 
-      {showSearch && (
-        <div className="fixed left-0 w-full z-55 px-6" style={{ top: "110px" }}>
-          <input
-            ref={inputRef}
-            id="header-search"
-            type="text"
-            placeholder="Search for a movie, TV show or documentary..."
-            className="w-full px-4 py-6 rounded-md bg-gray-100 text-black placeholder-gray-500 focus:outline-none shadow-lg"
-            style={{ fontSize: "22px" }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
-        </div>
-      )}
+      {/* Spacer */}
+      <div style={{ height: "120px" }} />
+
+      {/* Search input below header */}
+      <div
+        className={`w-full px-6 bg-white shadow-md transition-all duration-300`}
+        style={{
+          maxHeight: showSearch ? "120px" : "0px",
+          overflow: "hidden",
+          zIndex: 55,
+          position: "relative",
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Search for a movie, TV show or documentary..."
+          className={`w-full px-4 py-3 rounded-md bg-gray-100 text-black placeholder-gray-500 focus:outline-none shadow-lg transition-opacity duration-300 ${
+            showSearch
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+          style={{ fontSize: "22px" }}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+        />
+      </div>
     </>
   );
 };
