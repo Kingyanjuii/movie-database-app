@@ -4,6 +4,9 @@ import Header from "./components/Header";
 import MovieCard from "./components/MovieCard";
 import Banner from "./components/Banner";
 import MovieDetails from "./components/MovieDetails";
+import MoviesPage from "./pages/MoviesPage";
+import TVShowsPage from "./pages/TVShowsPage";
+import DocumentariesPage from "./pages/DocumentariesPage";
 
 const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -15,22 +18,19 @@ const App = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("Movies");
 
+  // Search Movies, TV Shows, and Documentaries
   const searchMovies = async (title) => {
     if (!title.trim()) return;
     setLoading(true);
     setError("");
 
     try {
-      // use multi search so results include movies and TV shows
       const response = await fetch(
-        `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(
-          title
-        )}`
+        `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
       );
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
-        // keep only movie/tv items or documentaries by genre id 99 (if present)
         const validResults = data.results.filter(
           (item) =>
             item.media_type === "movie" ||
@@ -38,10 +38,8 @@ const App = () => {
             (Array.isArray(item.genre_ids) && item.genre_ids.includes(99))
         );
 
-        // ensure every item has a media_type for downstream logic
         const normalized = validResults.map((it) => {
           if (it.media_type) return it;
-          // if no media_type but has title -> movie, else tv
           return {
             ...it,
             media_type: it.title ? "movie" : "tv",
@@ -61,6 +59,7 @@ const App = () => {
     setLoading(false);
   };
 
+  // Fetch trending content by category
   const fetchTrending = async (category) => {
     setLoading(true);
     setError("");
@@ -72,7 +71,6 @@ const App = () => {
       } else if (category === "TV Shows") {
         url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
       } else if (category === "Documentaries") {
-        // Use Discover API for documentaries
         url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=99&sort_by=popularity.desc`;
       }
 
@@ -80,7 +78,6 @@ const App = () => {
       const data = await response.json();
 
       if (data.results && data.results.length > 0) {
-        // Normalize results so each item includes media_type
         const normalizedResults = data.results.map((item) => ({
           ...item,
           media_type:
@@ -88,8 +85,7 @@ const App = () => {
               ? "movie"
               : category === "TV Shows"
               ? "tv"
-              : // for documentaries we label as movie (documentary) so details fetch as movie
-                "movie",
+              : "movie",
         }));
         setMovies(normalizedResults);
       } else {
@@ -109,45 +105,20 @@ const App = () => {
     fetchTrending(filter);
   }, [filter]);
 
+  // Shared layout for main landing page
   const MainPage = () => (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      <Header />
+      {/* Spacer for fixed header */}
+      <div className="mt-[150px]"></div>
 
       {/* Banner Section */}
-      <section
-        className="relative w-full h-[350px] bg-cover bg-center"
-        style={{ backgroundImage: "url('/banner.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-black/50"></div>
-
-        {/* Search Bar */}
-        <div className="absolute left-1/2 bottom-[25%] transform -translate-x-1/2 z-10">
-          <div
-            className="flex items-center rounded-full overflow-hidden shadow-2xl bg-white transition-all"
-            style={{ width: "850px", height: "50px" }}
-          >
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search for a movie, TV show or documentary..."
-              className="flex-1 h-full px-6 text-black placeholder-gray-500 bg-white focus:outline-none border-none text-lg"
-            />
-            <button
-              onClick={() => searchMovies(searchTerm)}
-              className="h-full px-[40px] bg-[#f2790f] text-[#ffffff] font-semibold text-lg hover:bg-[#e06900] transition-all duration-300 border-none outline-none"
-            >
-              Search
-            </button>
-          </div>
-        </div>
-      </section>
+      <Banner searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchMovies={searchMovies} />
 
       {/* Trending Section */}
       <section className="mt-12 px-[60px] flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-white mb-4">Trending</h2>
 
-        {/* Tab Buttons styled like MovieDetails */}
+        {/* Category Buttons */}
         <div className="flex gap-[20px] pb-3" style={{ marginBottom: "20px" }}>
           {["Movies", "TV Shows", "Documentaries"].map((type) => (
             <button
@@ -169,8 +140,6 @@ const App = () => {
             </button>
           ))}
         </div>
-
-        <div className="h-[40px]"></div>
       </section>
 
       {/* Main Content */}
@@ -183,7 +152,10 @@ const App = () => {
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))" }}
         >
           {movies.map((movie) => (
-            <MovieCard key={`${movie.id}-${movie.media_type || "movie"}`} movie={movie} />
+            <MovieCard
+              key={`${movie.id}-${movie.media_type || "movie"}`}
+              movie={movie}
+            />
           ))}
         </div>
       </main>
@@ -192,13 +164,19 @@ const App = () => {
 
   return (
     <Router>
+      <Header setFilter={setFilter} />
       <Routes>
+        {/* Homepage */}
         <Route path="/" element={<MainPage />} />
-        {/* keep backward-compatible movie route */}
+
+        {/* Dedicated category pages */}
+        <Route path="/movies" element={<MoviesPage />} />
+        <Route path="/tvshows" element={<TVShowsPage />} />
+        <Route path="/documentaries" element={<DocumentariesPage />} />
+
+        {/* Details routes */}
         <Route path="/movie/:id" element={<MovieDetails />} />
-        {/* keep tv route as well */}
         <Route path="/tv/:id" element={<MovieDetails />} />
-        {/* unified route that includes media type explicitly */}
         <Route path="/details/:mediaType/:id" element={<MovieDetails />} />
       </Routes>
     </Router>
