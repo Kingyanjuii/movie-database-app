@@ -14,9 +14,9 @@ const Header = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        setShowHeader(false); // hide header when scrolling down
+        setShowHeader(false);
       } else {
-        setShowHeader(true); // show header when scrolling up
+        setShowHeader(true);
       }
       setLastScrollY(currentScrollY);
     };
@@ -25,27 +25,21 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Function to determine active link
   const isActive = (path) => location.pathname === path;
 
   return (
     <header
-      className={`w-full bg-black text-white fixed top-0 left-0 z-50 transition-transform duration-300 ${
+      className={`w-full fixed top-0 left-0 z-50 transition-transform duration-300 ${
         showHeader ? "translate-y-0" : "-translate-y-full"
       }`}
       style={{
-        paddingBottom: "40px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
+        backgroundColor: "#ffffff",       // solid white
+        padding: "20px 32px 20px 32px",   // uniform padding
+        boxShadow: "0 2px 10px rgba(0,0,0,0.5)", // keep shadow
       }}
     >
-      {/* Main container */}
-      <div
-        className="flex justify-between items-center"
-        style={{ paddingRight: "30px", paddingLeft: "32px" }}
-      >
-        {/* Left side: Logo + Navigation */}
-        <div className="flex items-center" style={{ gap: "65px" }}>
-          {/* Logo (links to homepage) */}
+      <div className="flex justify-between items-center w-full">
+        <div className="flex items-center gap-[65px]">
           <Link to="/" className="flex items-center space-x-4">
             <img
               src={filamudbLogo}
@@ -54,36 +48,33 @@ const Header = () => {
             />
           </Link>
 
-          {/* Navigation Buttons */}
-          <nav className="flex" style={{ gap: "65px" }}>
+          <nav className="flex gap-[65px]">
             <Link
               to="/movies"
-              className={`font-bold no-underline transition-colors duration-300 ${
+              className={`font-bold transition-colors duration-300 ${
                 isActive("/movies")
                   ? "text-[#f2790f]"
-                  : "text-gray-300 hover:text-[#f2790f]"
+                  : "text-gray-700 hover:text-[#f2790f]"
               }`}
             >
               Movies
             </Link>
-
             <Link
               to="/tvshows"
-              className={`font-bold no-underline transition-colors duration-300 ${
+              className={`font-bold transition-colors duration-300 ${
                 isActive("/tvshows")
                   ? "text-[#f2790f]"
-                  : "text-gray-300 hover:text-[#f2790f]"
+                  : "text-gray-700 hover:text-[#f2790f]"
               }`}
             >
               TV Shows
             </Link>
-
             <Link
               to="/documentaries"
-              className={`font-bold no-underline transition-colors duration-300 ${
+              className={`font-bold transition-colors duration-300 ${
                 isActive("/documentaries")
                   ? "text-[#f2790f]"
-                  : "text-gray-300 hover:text-[#f2790f]"
+                  : "text-gray-700 hover:text-[#f2790f]"
               }`}
             >
               Documentaries
@@ -91,8 +82,7 @@ const Header = () => {
           </nav>
         </div>
 
-        {/* Right side: Search Icon Toggle */}
-        <div className="flex items-center" style={{ marginRight: "30px" }}>
+        <div className="flex items-center">
           {showSearch ? (
             <X
               className="w-6 h-6 cursor-pointer hover:text-[#f2790f]"
@@ -107,13 +97,12 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Search Bar Slide Down */}
       {showSearch && (
-        <div className="absolute top-full left-0 w-full bg-black py-4 px-6 shadow-lg border-t border-gray-800">
+        <div className="absolute top-full left-0 w-full bg-white py-4 px-6 shadow-lg border-t border-gray-200">
           <input
             type="text"
             placeholder="Search for a movie, TV show or documentary..."
-            className="w-full px-4 py-3 rounded-md bg-gray-900 text-white placeholder-gray-500 focus:outline-none"
+            className="w-full px-4 py-3 rounded-md bg-gray-100 text-black placeholder-gray-500 focus:outline-none"
           />
         </div>
       )}
