@@ -7,6 +7,7 @@ import MovieDetails from "./components/MovieDetails";
 import MoviesPage from "./pages/MoviesPage";
 import TVShowsPage from "./pages/TVShowsPage";
 import DocumentariesPage from "./pages/DocumentariesPage";
+import SearchResultsPage from "./pages/SearchResultsPage"; // new
 
 const API_KEY = "bcb8cf769f51ae878cf1db997b3ae9ba";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -18,61 +19,15 @@ const App = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("Movies");
 
-  // Search Movies, TV Shows, and Documentaries
-  const searchMovies = async (title) => {
-    if (!title.trim()) return;
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
-      );
-      const data = await response.json();
-
-      if (data.results && data.results.length > 0) {
-        const validResults = data.results.filter(
-          (item) =>
-            item.media_type === "movie" ||
-            item.media_type === "tv" ||
-            (Array.isArray(item.genre_ids) && item.genre_ids.includes(99))
-        );
-
-        const normalized = validResults.map((it) => {
-          if (it.media_type) return it;
-          return {
-            ...it,
-            media_type: it.title ? "movie" : "tv",
-          };
-        });
-
-        setMovies(normalized);
-      } else {
-        setError("No movies found. Try another search!");
-        setMovies([]);
-      }
-    } catch (err) {
-      console.error("searchMovies error:", err);
-      setError("An error occurred while fetching data.");
-      setMovies([]);
-    }
-    setLoading(false);
-  };
-
   // Fetch trending content by category
   const fetchTrending = async (category) => {
     setLoading(true);
     setError("");
-
     try {
       let url = "";
-      if (category === "Movies") {
-        url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}`;
-      } else if (category === "TV Shows") {
-        url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
-      } else if (category === "Documentaries") {
-        url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=99&sort_by=popularity.desc`;
-      }
+      if (category === "Movies") url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}`;
+      else if (category === "TV Shows") url = `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`;
+      else if (category === "Documentaries") url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=99&sort_by=popularity.desc`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -97,28 +52,20 @@ const App = () => {
       setError("An error occurred while fetching trending data.");
       setMovies([]);
     }
-
     setLoading(false);
   };
 
+  // Fetch trending content on category change
   useEffect(() => {
     fetchTrending(filter);
   }, [filter]);
 
-  // Shared layout for main landing page
   const MainPage = () => (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Spacer for fixed header */}
       <div className="mt-[150px]"></div>
-
-      {/* Banner Section */}
-      <Banner searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchMovies={searchMovies} />
-
-      {/* Trending Section */}
+      <Banner searchTerm={searchTerm} setSearchTerm={setSearchTerm} filter={filter} />
       <section className="mt-12 px-[60px] flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-white mb-4">Trending</h2>
-
-        {/* Category Buttons */}
         <div className="flex gap-[20px] pb-3" style={{ marginBottom: "20px" }}>
           {["Movies", "TV Shows", "Documentaries"].map((type) => (
             <button
@@ -142,7 +89,6 @@ const App = () => {
         </div>
       </section>
 
-      {/* Main Content */}
       <main className="flex-grow px-[30px] pb-10">
         {loading && <p className="text-center mt-8">Loading movies...</p>}
         {error && <p className="text-center text-red-400 mt-8">{error}</p>}
@@ -164,17 +110,13 @@ const App = () => {
 
   return (
     <Router>
-      <Header setFilter={setFilter} />
+      <Header setFilter={setFilter} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <Routes>
-        {/* Homepage */}
         <Route path="/" element={<MainPage />} />
-
-        {/* Dedicated category pages */}
+        <Route path="/search" element={<SearchResultsPage />} /> {/* New search results page */}
         <Route path="/movies" element={<MoviesPage />} />
         <Route path="/tvshows" element={<TVShowsPage />} />
         <Route path="/documentaries" element={<DocumentariesPage />} />
-
-        {/* Details routes */}
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/tv/:id" element={<MovieDetails />} />
         <Route path="/details/:mediaType/:id" element={<MovieDetails />} />
