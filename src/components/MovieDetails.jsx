@@ -53,20 +53,18 @@ const MovieDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white px-[60px] pb-[50px]">
-      {/* ✅ Add top spacing BELOW header */}
+      {/* Top spacing below header */}
       <div className="pt-[150px]">
-
         <div className="flex flex-row items-start gap-[40px] mb-10">
-          <div className="flex-shrink-0">
+          {/* Poster container with forced rounded edges */}
+          <div
+            className="overflow-hidden shadow-lg flex-shrink-0"
+            style={{ width: "412px", height: "562px", borderRadius: "24px" }}
+          >
             <img
-              src={
-                movie.poster_path
-                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : "https://via.placeholder.com/412x562"
-              }
+              src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "https://via.placeholder.com/412x562"}
               alt={movie.title || movie.name}
-              className="shadow-lg rounded-3xl"
-              style={{ width: "412px", height: "562px", objectFit: "cover" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "24px" }}
             />
           </div>
 
@@ -135,22 +133,22 @@ const MovieDetails = () => {
                   {cast.length > 0 ? (
                     cast.map((actor) => (
                       <div key={actor.id} className="w-[150px] text-left">
-                        <img
-                          src={
-                            actor.profile_path
-                              ? `https://image.tmdb.org/t/p/w300${actor.profile_path}`
-                              : "https://via.placeholder.com/150x225"
-                          }
-                          alt={actor.name}
-                          className="rounded-xl mb-2"
-                          style={{ width: "150px", height: "225px", objectFit: "cover" }}
-                        />
-                        <p className="font-extrabold text-white text-[16px] mb-[2px]">
-                          {actor.name}
-                        </p>
-                        <p className="font-normal text-[#5c6f73] text-[14px]">
-                          {actor.character}
-                        </p>
+                        <div
+                          className="overflow-hidden mb-2"
+                          style={{ width: "150px", height: "225px", borderRadius: "16px" }}
+                        >
+                          <img
+                            src={
+                              actor.profile_path
+                                ? `https://image.tmdb.org/t/p/w300${actor.profile_path}`
+                                : "https://via.placeholder.com/150x225"
+                            }
+                            alt={actor.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "16px" }}
+                          />
+                        </div>
+                        <p className="font-extrabold text-white text-[16px] mb-[2px]">{actor.name}</p>
+                        <p className="font-normal text-[#5c6f73] text-[14px]">{actor.character}</p>
                       </div>
                     ))
                   ) : (
@@ -163,15 +161,20 @@ const MovieDetails = () => {
                 <div className="flex flex-wrap gap-6">
                   {videos.length > 0 ? (
                     videos.slice(0, 2).map((video) => (
-                      <iframe
+                      <div
                         key={video.id}
-                        src={`https://www.youtube.com/embed/${video.key}`}
-                        title={video.name}
-                        width="560"
-                        height="315"
-                        className="rounded-2xl shadow-lg"
-                        allowFullScreen
-                      ></iframe>
+                        className="overflow-hidden rounded-2xl shadow-lg"
+                        style={{ width: "560px", height: "315px" }}
+                      >
+                        <iframe
+                          src={`https://www.youtube.com/embed/${video.key}`}
+                          title={video.name}
+                          width="100%"
+                          height="100%"
+                          style={{ borderRadius: "16px" }}
+                          allowFullScreen
+                        ></iframe>
+                      </div>
                     ))
                   ) : (
                     <p className="text-gray-400">No trailers available.</p>
@@ -183,12 +186,7 @@ const MovieDetails = () => {
                 <div className="grid grid-cols-4 gap-6 mt-6">
                   {similar.length > 0 ? (
                     similar.map((m) => (
-                      <MovieCard
-                        key={m.id}
-                        movie={m}
-                        customWidth="160px"
-                        customHeight="230px"
-                      />
+                      <MovieCard key={m.id} movie={m} customWidth="160px" customHeight="230px" />
                     ))
                   ) : (
                     <p className="text-gray-400">No similar titles found.</p>
