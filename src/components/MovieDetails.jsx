@@ -54,7 +54,7 @@ const MovieDetails = () => {
   return (
     <div className="min-h-screen bg-gray-950 text-white px-[60px] pb-[50px]">
       {/* Top spacing below header */}
-      <div className="pt-[150px]">
+      <div className="pt-[40px]">
         <div className="flex flex-row items-start gap-[40px] mb-10">
           {/* Poster container with forced rounded edges */}
           <div
