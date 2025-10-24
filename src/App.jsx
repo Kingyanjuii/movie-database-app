@@ -74,7 +74,8 @@ const App = () => {
         showSearch={showSearch}
       />
 
-      <section className="mt-12 px-[60px] flex flex-col gap-4">
+      {/* Updated section: Trending heading + buttons */}
+      <section className="mt-12 px-[40px] flex flex-col gap-4">
         <h2 className="text-2xl font-bold text-white mb-4">Trending</h2>
         <div className="flex gap-[20px] pb-3" style={{ marginBottom: "20px" }}>
           {["Movies", "TV Shows", "Documentaries"].map((type) => (
