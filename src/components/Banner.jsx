@@ -50,7 +50,7 @@ const Banner = ({ searchTerm, setSearchTerm }) => {
 
           <button
             onClick={handleSearch}
-            className="h-full w-[160px] bg-[#f2790f] text-[#ffffff] font-semibold text-2xl hover:bg-[#e06900] transition-all border-none outline-none"
+            className="h-full w-[130px] bg-[#f2790f] text-[#ffffff] font-semibold text-2xl hover:bg-[#e06900] transition-all border-none outline-none"
           >
             Search
           </button>

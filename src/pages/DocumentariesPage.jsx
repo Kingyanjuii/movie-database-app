@@ -27,8 +27,13 @@ const DocumentariesPage = () => {
           media_type: "movie",
         }));
 
-        // Append new results
-        setDocs((prev) => [...prev, ...normalizedResults]);
+        // Append new results, filtering out duplicates by ID
+        setDocs((prev) => {
+          const newDocs = normalizedResults.filter(
+            (item) => !prev.some((d) => d.id === item.id)
+          );
+          return [...prev, ...newDocs];
+        });
 
         // Stop loading more if last page
         if (pageNum >= data.total_pages || data.results.length < 20) {
@@ -91,7 +96,7 @@ const DocumentariesPage = () => {
           <div className="flex justify-center mt-10">
             <button
               onClick={handleLoadMore}
-              className="bg-[#f2790f] text-white w-[140px] h-[50px] rounded-full font-bold text-lg hover:bg-orange-600 transition duration-200"
+              className="bg-[#f2790f] text-[#ffffff] w-[140px] h-[50px] rounded-full font-bold text-lg hover:bg-orange-600 transition duration-200"
               disabled={loading}
             >
               {loading ? "Loading..." : "Load More"}

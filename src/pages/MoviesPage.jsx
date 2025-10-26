@@ -27,8 +27,13 @@ const MoviesPage = () => {
           media_type: "movie",
         }));
 
-        // Append new results
-        setMovies((prev) => [...prev, ...normalizedResults]);
+        // Append new results, filtering out duplicates by ID
+        setMovies((prev) => {
+          const newMovies = normalizedResults.filter(
+            (item) => !prev.some((m) => m.id === item.id)
+          );
+          return [...prev, ...newMovies];
+        });
 
         // Stop loading more if we reach the last page available
         if (pageNum >= data.total_pages || data.results.length < 20) {
@@ -87,16 +92,16 @@ const MoviesPage = () => {
         </div>
 
         {/* Load More Button */}
-{hasMore && (
-  <div className="flex justify-center mt-10">
-  <button
-    onClick={handleLoadMore}
-    className="bg-[#f2790f] text-white w-[140px] h-[50px] rounded-full font-bold text-lg hover:bg-orange-600 transition duration-200"
-  >
-    Load More
-  </button>
-</div>
-)}
+        {hasMore && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={handleLoadMore}
+              className="bg-[#f2790f] text-[#ffffff] w-[140px] h-[50px] rounded-full font-bold text-lg hover:bg-orange-600 transition duration-200"
+            >
+              Load More
+            </button>
+          </div>
+        )}
 
         {loading && movies.length > 0 && (
           <p className="text-center mt-8 text-gray-400">Loading more movies...</p>
